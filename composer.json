@@ -8,8 +8,7 @@
     ],
   "require": {
     "axolotl-pm/pocketmine-mp": "dev-stable",
-    "ext-sockets": "*",
-    "ext-pthreads": "*"
+    "ext-sockets": "*"
   },
   "autoload": {
     "classmap": [
