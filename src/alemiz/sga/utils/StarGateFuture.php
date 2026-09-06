@@ -32,7 +32,7 @@ class StarGateFuture {
     /**
      * @param mixed $response
      */
-    public function complete($response) : void {
+    public function complete(mixed $response) : void {
         if (empty($this->closures)){
             return;
         }
