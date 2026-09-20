@@ -1,13 +1,7 @@
 {
     "name": "alemiz112/stargate-atlantis",
-  "repositories": [
-    {
-      "type": "vcs",
-      "url": "https://github.com/pupggers/PocketMine-MP"
-    }
-    ],
   "require": {
-    "axolotl-pm/pocketmine-mp": "dev-stable",
+    "axolotl-pm/pocketmine-mp": "^5.0.0",
     "ext-sockets": "*"
   },
   "autoload": {
