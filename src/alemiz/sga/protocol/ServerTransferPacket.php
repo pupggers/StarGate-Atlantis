@@ -1,4 +1,5 @@
 <?php
+
 /*
  * Copyright 2020 Alemiz
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,19 +21,21 @@ use alemiz\sga\codec\StarGatePacketHandler;
 use alemiz\sga\codec\StarGatePackets;
 use alemiz\sga\protocol\types\PacketHelper;
 
-class ServerTransferPacket extends StarGatePacket {
-
+class ServerTransferPacket extends StarGatePacket
+{
     /** @var string */
     private string $playerName;
     /** @var string */
     private string $targetServer;
 
-    public function encodePayload() : void {
+    public function encodePayload(): void
+    {
         PacketHelper::writeString($this, $this->playerName);
         PacketHelper::writeString($this, $this->targetServer);
     }
 
-    public function decodePayload() : void {
+    public function decodePayload(): void
+    {
         $this->playerName = PacketHelper::readString($this);
         $this->targetServer = PacketHelper::readString($this);
     }
@@ -41,39 +44,45 @@ class ServerTransferPacket extends StarGatePacket {
      * @param StarGatePacketHandler $handler
      * @return bool
      */
-    public function handle(StarGatePacketHandler $handler) : bool {
+    public function handle(StarGatePacketHandler $handler): bool
+    {
         return $handler->handleServerTransfer($this);
     }
 
-    public function getPacketId() : int {
+    public function getPacketId(): int
+    {
         return StarGatePackets::SERVER_TRANSFER_PACKET;
     }
 
     /**
      * @param string $playerName
      */
-    public function setPlayerName(string $playerName) : void {
+    public function setPlayerName(string $playerName): void
+    {
         $this->playerName = $playerName;
     }
 
     /**
      * @return string
      */
-    public function getPlayerName() : string {
+    public function getPlayerName(): string
+    {
         return $this->playerName;
     }
 
     /**
      * @param string $targetServer
      */
-    public function setTargetServer(string $targetServer) : void {
+    public function setTargetServer(string $targetServer): void
+    {
         $this->targetServer = $targetServer;
     }
 
     /**
      * @return string
      */
-    public function getTargetServer() : string {
+    public function getTargetServer(): string
+    {
         return $this->targetServer;
     }
 

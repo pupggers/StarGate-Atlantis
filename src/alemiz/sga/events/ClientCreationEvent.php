@@ -1,4 +1,5 @@
 <?php
+
 /*
  * Copyright 2020 Alemiz
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,6 +20,7 @@ namespace alemiz\sga\events;
 use pocketmine\event\Cancellable;
 use pocketmine\event\CancellableTrait;
 
-class ClientCreationEvent extends ClientEvent implements Cancellable {
+class ClientCreationEvent extends ClientEvent implements Cancellable
+{
     use CancellableTrait;
 }

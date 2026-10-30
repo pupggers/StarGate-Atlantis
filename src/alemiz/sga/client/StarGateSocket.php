@@ -1,4 +1,5 @@
 <?php
+
 /*
  * Copyright 2020 Alemiz
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,15 +20,17 @@ namespace alemiz\sga\client;
 use Exception;
 use pmmp\thread\ThreadSafe;
 use RuntimeException;
+
 use function socket_create;
 use function socket_last_error;
 use function socket_strerror;
+
 use const AF_INET;
 use const SOCK_STREAM;
 use const SOL_TCP;
 
-class StarGateSocket extends ThreadSafe{
-
+class StarGateSocket extends ThreadSafe
+{
     /** @var StarGateConnection */
     private StarGateConnection $conn;
 
@@ -42,7 +45,8 @@ class StarGateSocket extends ThreadSafe{
      * @param string $address
      * @param int $port
      */
-    public function __construct(StarGateConnection $conn, string $address, int $port){
+    public function __construct(StarGateConnection $conn, string $address, int $port)
+    {
         $this->conn = $conn;
         $this->address = $address;
         $this->port = $port;
@@ -51,10 +55,11 @@ class StarGateSocket extends ThreadSafe{
     /**
      * @return bool
      */
-    public function connect() : bool {
+    public function connect(): bool
+    {
         $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
         try {
-            if ($socket === false){
+            if ($socket === false) {
                 throw new RuntimeException(socket_strerror(socket_last_error()));
             }
             if (!@socket_connect($socket, $this->address, $this->port)) {
@@ -63,8 +68,8 @@ class StarGateSocket extends ThreadSafe{
 
             socket_set_nonblock($socket);
             socket_set_option($socket, SOL_TCP, TCP_NODELAY, 1);
-        }catch (Exception $e){
-            $this->conn->getLogger()->error("Can not connect to StarGate server!");
+        } catch (Exception $e) {
+            $this->conn->getLogger()->error('Can not connect to StarGate server!');
             $this->conn->getLogger()->logException($e);
             return false;
         }
@@ -73,8 +78,9 @@ class StarGateSocket extends ThreadSafe{
         return true;
     }
 
-    public function close() : void {
-        if ($this->conn->socket !== null){
+    public function close(): void
+    {
+        if ($this->conn->socket !== null) {
             socket_close($this->conn->socket);
         }
     }

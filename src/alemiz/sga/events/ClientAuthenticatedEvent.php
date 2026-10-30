@@ -1,4 +1,5 @@
 <?php
+
 /*
  * Copyright 2020 Alemiz
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,24 +20,26 @@ namespace alemiz\sga\events;
 use pocketmine\event\Cancellable;
 use pocketmine\event\CancellableTrait;
 
-class ClientAuthenticatedEvent extends ClientEvent implements Cancellable {
-
+class ClientAuthenticatedEvent extends ClientEvent implements Cancellable
+{
     use CancellableTrait;
 
     /** @var string */
-    private string $cancelMessage = "Authentication was canceled!";
+    private string $cancelMessage = 'Authentication was canceled!';
 
     /**
      * @param string $cancelMessage
      */
-    public function setCancelMessage(string $cancelMessage) : void {
+    public function setCancelMessage(string $cancelMessage): void
+    {
         $this->cancelMessage = $cancelMessage;
     }
 
     /**
      * @return string
      */
-    public function getCancelMessage() : string {
+    public function getCancelMessage(): string
+    {
         return $this->cancelMessage;
     }
 

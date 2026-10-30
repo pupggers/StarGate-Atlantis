@@ -1,4 +1,5 @@
 <?php
+
 /*
  * Copyright 2020 Alemiz
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,6 +17,6 @@
 
 namespace alemiz\sga\utils;
 
-class PacketResponse extends StarGateFuture {
-
+class PacketResponse extends StarGateFuture
+{
 }

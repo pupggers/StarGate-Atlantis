@@ -1,4 +1,5 @@
 <?php
+
 /*
  * Copyright 2020 Alemiz
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,8 +20,8 @@ namespace alemiz\sga\protocol\types;
 use alemiz\sga\protocol\HandshakePacket;
 use pmmp\thread\ThreadSafe;
 
-class HandshakeData extends ThreadSafe {
-
+class HandshakeData extends ThreadSafe
+{
     public const SOFTWARE_POCKETMINE = 0;
     public const SOFTWARE_PMMP5 = 1;
 
@@ -28,7 +29,8 @@ class HandshakeData extends ThreadSafe {
      * @param HandshakePacket $packet
      * @param HandshakeData $handshakeData
      */
-    public static function encodeData(HandshakePacket $packet, HandshakeData $handshakeData) : void {
+    public static function encodeData(HandshakePacket $packet, HandshakeData $handshakeData): void
+    {
         PacketHelper::writeInt($packet, $handshakeData->getSoftware());
         PacketHelper::writeString($packet, $handshakeData->getClientName());
         PacketHelper::writeString($packet, $handshakeData->getPassword());
@@ -39,7 +41,8 @@ class HandshakeData extends ThreadSafe {
      * @param HandshakePacket $packet
      * @return HandshakeData
      */
-    public static function decodeData(HandshakePacket $packet) : HandshakeData {
+    public static function decodeData(HandshakePacket $packet): HandshakeData
+    {
         $software = PacketHelper::readInt($packet);
         $clientName = PacketHelper::readString($packet);
         $password = PacketHelper::readString($packet);
@@ -63,7 +66,8 @@ class HandshakeData extends ThreadSafe {
      * @param int $software
      * @param int $protocolVersion
      */
-    public function __construct(string $clientName, string $password, int $software, int $protocolVersion){
+    public function __construct(string $clientName, string $password, int $software, int $protocolVersion)
+    {
         $this->clientName = $clientName;
         $this->password = $password;
         $this->software = $software;
@@ -73,28 +77,32 @@ class HandshakeData extends ThreadSafe {
     /**
      * @return string
      */
-    public function getClientName() : string {
+    public function getClientName(): string
+    {
         return $this->clientName;
     }
 
     /**
      * @return string
      */
-    public function getPassword() : string {
+    public function getPassword(): string
+    {
         return $this->password;
     }
 
     /**
      * @return int
      */
-    public function getSoftware() : int {
+    public function getSoftware(): int
+    {
         return $this->software;
     }
 
     /**
      * @return int
      */
-    public function getProtocolVersion() : int {
+    public function getProtocolVersion(): int
+    {
         return $this->protocolVersion;
     }
 }

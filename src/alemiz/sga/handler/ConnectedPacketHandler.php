@@ -1,4 +1,5 @@
 <?php
+
 /*
  * Copyright 2020 Alemiz
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,13 +21,14 @@ use alemiz\sga\protocol\PingPacket;
 use alemiz\sga\protocol\PongPacket;
 use alemiz\sga\protocol\ReconnectPacket;
 
-class ConnectedPacketHandler extends CommonSessionHandler {
-
+class ConnectedPacketHandler extends CommonSessionHandler
+{
     /**
      * @param PingPacket $packet
      * @return bool
      */
-    public function handlePing(PingPacket $packet) : bool {
+    public function handlePing(PingPacket $packet): bool
+    {
         $pongPacket = new PongPacket();
         $pongPacket->setPingTime($packet->getPingTime());
         $this->session->sendPacket($pongPacket);
@@ -37,7 +39,8 @@ class ConnectedPacketHandler extends CommonSessionHandler {
      * @param PongPacket $packet
      * @return bool
      */
-    public function handlePong(PongPacket $packet) : bool {
+    public function handlePong(PongPacket $packet): bool
+    {
         $this->session->onPongReceive($packet);
         return true;
     }
@@ -46,7 +49,8 @@ class ConnectedPacketHandler extends CommonSessionHandler {
      * @param ReconnectPacket $packet
      * @return bool
      */
-    public function handleReconnect(ReconnectPacket $packet) : bool {
+    public function handleReconnect(ReconnectPacket $packet): bool
+    {
         $this->session->reconnect($packet->getReason(), false);
         return true;
     }

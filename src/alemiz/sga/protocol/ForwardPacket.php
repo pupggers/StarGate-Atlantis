@@ -1,4 +1,5 @@
 <?php
+
 /*
  * Copyright 2020 Alemiz
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -20,14 +21,15 @@ use alemiz\sga\codec\StarGatePacketHandler;
 use alemiz\sga\codec\StarGatePackets;
 use alemiz\sga\protocol\types\PacketHelper;
 
-class ForwardPacket extends StarGatePacket {
-
+class ForwardPacket extends StarGatePacket
+{
     /**
      * @param string $clientName
      * @param StarGatePacket $packet
      * @return ForwardPacket
      */
-    public static function from(string $clientName, StarGatePacket $packet) : ForwardPacket {
+    public static function from(string $clientName, StarGatePacket $packet): ForwardPacket
+    {
         $forwardPacket = new ForwardPacket();
         $forwardPacket->setClientName($clientName);
 
@@ -46,13 +48,15 @@ class ForwardPacket extends StarGatePacket {
     /** @var UnknownPacket */
     public UnknownPacket $packet;
 
-    public function encodePayload() : void {
+    public function encodePayload(): void
+    {
         PacketHelper::writeString($this, $this->clientName);
         $this->putByte($this->packet->getPacketId());
         PacketHelper::writeByteArray($this, $this->packet->getPayload());
     }
 
-    public function decodePayload() : void {
+    public function decodePayload(): void
+    {
         $this->clientName = PacketHelper::readString($this);
 
         $packet = new UnknownPacket();
@@ -64,7 +68,8 @@ class ForwardPacket extends StarGatePacket {
     /**
      * @return int
      */
-    public function getPacketId() : int {
+    public function getPacketId(): int
+    {
         return StarGatePackets::FORWARD_PACKET;
     }
 
@@ -72,35 +77,40 @@ class ForwardPacket extends StarGatePacket {
      * @param StarGatePacketHandler $handler
      * @return bool
      */
-    public function handle(StarGatePacketHandler $handler) : bool {
+    public function handle(StarGatePacketHandler $handler): bool
+    {
         return $handler->handleForwardPacket($this);
     }
 
     /**
      * @param string $clientName
      */
-    public function setClientName(string $clientName) : void {
+    public function setClientName(string $clientName): void
+    {
         $this->clientName = $clientName;
     }
 
     /**
      * @return string
      */
-    public function getClientName() : string {
+    public function getClientName(): string
+    {
         return $this->clientName;
     }
 
     /**
      * @param UnknownPacket $packet
      */
-    public function setPacket(UnknownPacket $packet) : void {
+    public function setPacket(UnknownPacket $packet): void
+    {
         $this->packet = $packet;
     }
 
     /**
      * @return UnknownPacket
      */
-    public function getPacket() : UnknownPacket {
+    public function getPacket(): UnknownPacket
+    {
         return $this->packet;
     }
 }

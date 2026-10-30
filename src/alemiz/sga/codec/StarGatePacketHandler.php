@@ -1,4 +1,6 @@
-<?php /** @noinspection PhpUnusedParameterInspection */
+<?php
+
+/** @noinspection PhpUnusedParameterInspection */
 
 /*
  * Copyright 2020 Alemiz
@@ -31,13 +33,14 @@ use alemiz\sga\protocol\ServerInfoResponsePacket;
 use alemiz\sga\protocol\ServerTransferPacket;
 use alemiz\sga\protocol\UnknownPacket;
 
-abstract class StarGatePacketHandler {
-
+abstract class StarGatePacketHandler
+{
     /**
      * @param HandshakePacket $packet
      * @return bool
      */
-    public function handleHandshake(HandshakePacket $packet) : bool {
+    public function handleHandshake(HandshakePacket $packet): bool
+    {
         return false;
     }
 
@@ -45,7 +48,8 @@ abstract class StarGatePacketHandler {
      * @param ServerHandshakePacket $packet
      * @return bool
      */
-    public function handleServerHandshake(ServerHandshakePacket $packet) : bool {
+    public function handleServerHandshake(ServerHandshakePacket $packet): bool
+    {
         return false;
     }
 
@@ -53,7 +57,8 @@ abstract class StarGatePacketHandler {
      * @param DisconnectPacket $packet
      * @return bool
      */
-    public function handleDisconnect(DisconnectPacket $packet) : bool {
+    public function handleDisconnect(DisconnectPacket $packet): bool
+    {
         return false;
     }
 
@@ -61,7 +66,8 @@ abstract class StarGatePacketHandler {
      * @param PingPacket $packet
      * @return bool
      */
-    public function handlePing(PingPacket $packet) : bool {
+    public function handlePing(PingPacket $packet): bool
+    {
         return false;
     }
 
@@ -69,7 +75,8 @@ abstract class StarGatePacketHandler {
      * @param PongPacket $packet
      * @return bool
      */
-    public function handlePong(PongPacket $packet) : bool {
+    public function handlePong(PongPacket $packet): bool
+    {
         return false;
     }
 
@@ -77,7 +84,8 @@ abstract class StarGatePacketHandler {
      * @param ReconnectPacket $packet
      * @return bool
      */
-    public function handleReconnect(ReconnectPacket $packet) : bool {
+    public function handleReconnect(ReconnectPacket $packet): bool
+    {
         return false;
     }
 
@@ -85,7 +93,8 @@ abstract class StarGatePacketHandler {
      * @param ForwardPacket $packet
      * @return bool
      */
-    public function handleForwardPacket(ForwardPacket $packet) : bool {
+    public function handleForwardPacket(ForwardPacket $packet): bool
+    {
         return false;
     }
 
@@ -93,7 +102,8 @@ abstract class StarGatePacketHandler {
      * @param ServerInfoRequestPacket $packet
      * @return bool
      */
-    public function handleServerInfoRequest(ServerInfoRequestPacket $packet) : bool {
+    public function handleServerInfoRequest(ServerInfoRequestPacket $packet): bool
+    {
         return false;
     }
 
@@ -101,7 +111,8 @@ abstract class StarGatePacketHandler {
      * @param ServerInfoResponsePacket $packet
      * @return bool
      */
-    public function handleServerInfoResponse(ServerInfoResponsePacket $packet) : bool {
+    public function handleServerInfoResponse(ServerInfoResponsePacket $packet): bool
+    {
         return false;
     }
 
@@ -109,7 +120,8 @@ abstract class StarGatePacketHandler {
      * @param ServerTransferPacket $packet
      * @return bool
      */
-    public function handleServerTransfer(ServerTransferPacket $packet) : bool {
+    public function handleServerTransfer(ServerTransferPacket $packet): bool
+    {
         return false;
     }
 
@@ -117,7 +129,8 @@ abstract class StarGatePacketHandler {
      * @param UnknownPacket $packet
      * @return bool
      */
-    public function handleUnknown(UnknownPacket $packet) : bool {
+    public function handleUnknown(UnknownPacket $packet): bool
+    {
         return false;
     }
 
@@ -125,7 +138,8 @@ abstract class StarGatePacketHandler {
      * @param PlayerPingRequestPacket $packet
      * @return bool
      */
-    public function handlePlayerPingRequest(PlayerPingRequestPacket $packet) : bool {
+    public function handlePlayerPingRequest(PlayerPingRequestPacket $packet): bool
+    {
         return false;
     }
 
@@ -133,7 +147,8 @@ abstract class StarGatePacketHandler {
      * @param PlayerPingResponsePacket $packet
      * @return bool
      */
-    public function handlePlayerPingResponse(PlayerPingResponsePacket  $packet) : bool {
+    public function handlePlayerPingResponse(PlayerPingResponsePacket  $packet): bool
+    {
         return false;
     }
 }

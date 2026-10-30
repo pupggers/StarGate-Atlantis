@@ -1,4 +1,5 @@
 <?php
+
 /*
  * Copyright 2020 Alemiz
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,8 +17,8 @@
 
 namespace alemiz\sga\codec;
 
-interface StarGatePackets {
-
+interface StarGatePackets
+{
     public const HANDSHAKE_PACKET = 0x01;
     public const SERVER_HANDSHAKE_PACKET = 0x02;
     public const DISCONNECT_PACKET = 0x03;

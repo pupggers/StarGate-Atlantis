@@ -1,4 +1,5 @@
 <?php
+
 /*
  * Copyright 2020 Alemiz
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,8 +17,8 @@
 
 namespace alemiz\sga\utils;
 
-class LogLevel {
-
+class LogLevel
+{
     public const LEVEL_DISABLED = 0;
     public const LEVEL_FILTERED = 1;
     public const LEVEL_ALL = 2;
