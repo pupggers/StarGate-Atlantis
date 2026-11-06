@@ -62,15 +62,21 @@ class StarGateSocket extends ThreadSafe
             if ($socket === false) {
                 throw new RuntimeException(socket_strerror(socket_last_error()));
             }
+            // Bound the blocking connect so an unreachable proxy host fails in seconds and the client can retry.
+            socket_set_option($socket, SOL_SOCKET, SO_SNDTIMEO, ['sec' => 5, 'usec' => 0]);
+            socket_set_option($socket, SOL_SOCKET, SO_RCVTIMEO, ['sec' => 5, 'usec' => 0]);
             if (!@socket_connect($socket, $this->address, $this->port)) {
-                throw new RuntimeException(socket_strerror(socket_last_error()));
+                throw new RuntimeException(socket_strerror(socket_last_error($socket)));
             }
 
             socket_set_nonblock($socket);
             socket_set_option($socket, SOL_TCP, TCP_NODELAY, 1);
         } catch (Exception $e) {
-            $this->conn->getLogger()->error('Can not connect to StarGate server!');
-            $this->conn->getLogger()->logException($e);
+            // Expected while the proxy is down; the client logs the outage once and keeps retrying.
+            $this->conn->getLogger()->debug('Can not connect to StarGate server: ' . $e->getMessage());
+            if ($socket !== false) {
+                socket_close($socket);
+            }
             return false;
         }
 

@@ -26,7 +26,12 @@ use pocketmine\thread\log\ThreadSafeLogger;
 use pocketmine\thread\Thread;
 use pocketmine\utils\Binary;
 
+use function in_array;
+use function socket_clear_error;
+use function socket_last_error;
 use function socket_read;
+use function socket_send;
+use function socket_strerror;
 use function strlen;
 use function substr;
 
@@ -45,7 +50,7 @@ class StarGateConnection extends Thread
     /** @var StarGateSocket */
     private StarGateSocket $starGateSocket;
 
-    public ?\Socket $socket;
+    public ?\Socket $socket = null;
 
     /** @var string */
     private string $address;
@@ -59,6 +64,11 @@ class StarGateConnection extends Thread
 
     /** @var string */
     private string $buffer = '';
+    /** Bytes of an outgoing packet the non-blocking socket has not accepted yet. */
+    private string $pending = '';
+
+    /** socket_read()/socket_send() codes that only mean "try again": EINTR, EAGAIN (Linux, macOS) and WSAEWOULDBLOCK. */
+    private const RETRY_ERRORS = [0, 4, 11, 35, 10035];
 
     /** @var int */
     private int $state = self::STATE_DISCONNECTED;
@@ -109,7 +119,7 @@ class StarGateConnection extends Thread
 
     private function operate(): void
     {
-        while ($this->state !== self::STATE_DISCONNECTED) {
+        while ($this->state !== self::STATE_DISCONNECTED && $this->state !== self::STATE_SHUTDOWN) {
             $start = microtime(true);
             $this->onTick();
             $time = microtime(true);
@@ -117,39 +127,89 @@ class StarGateConnection extends Thread
                 time_sleep_until($time + 0.025 - $diff);
             }
         }
-        $this->onTick();
+        // Send what is still queued (e.g. our DisconnectPacket on a clean close); a dead peer just fails quietly.
+        if ($this->socket !== null) {
+            $this->flushOutput($this->socket);
+        }
         $this->shutdown();
     }
 
     private function onTick(): void
     {
-        $error = socket_last_error();
-        socket_clear_error($this->socket);
-
         $socket = $this->socket;
-
         if ($socket === null) {
-            goto error;
-        }
-        if ($error === 10057 || $error === 10054 || $error === 10053) {
-            error:
-            $this->getLogger()->info('§cConnection with StarGate server has disconnected unexpectedly!');
-            $this->close();
+            $this->lost('no socket');
             return;
         }
 
         $data = @socket_read($socket, 65536, PHP_BINARY_READ);
-        if ($data !== '') {
+        if ($data === '') {
+            // A readable socket with nothing to read is end-of-file: the proxy went away.
+            $this->lost('the proxy closed the connection');
+            return;
+        }
+        if ($data === false) {
+            $error = socket_last_error($socket);
+            socket_clear_error($socket);
+            if (!in_array($error, self::RETRY_ERRORS, true)) {
+                $this->lost(socket_strerror($error));
+                return;
+            }
+        } else {
             $this->buffer .= $data;
         }
 
-        while (($packet = $this->outRead()) !== null && $packet !== '') {
-            if (@socket_write($socket, $packet) === false) {
-                goto error;
+        if (!$this->flushOutput($socket)) {
+            return;
+        }
+        try {
+            $this->readBuffer();
+        } catch (StarGateException $e) {
+            $this->lost($e->getMessage());
+        }
+    }
+
+    /**
+     * Writes queued packets without ever raising SIGPIPE: writing to a socket whose peer is gone would otherwise
+     * terminate the whole server process (PHP does not ignore SIGPIPE), which is how a proxy outage used to take
+     * downstream servers down with no crash dump. Partial writes are kept for the next tick.
+     */
+    private function flushOutput(\Socket $socket): bool
+    {
+        $flags = defined('MSG_NOSIGNAL') ? MSG_NOSIGNAL : 0;
+        while (true) {
+            if ($this->pending === '') {
+                $next = $this->outRead();
+                if ($next === null || $next === '') {
+                    return true;
+                }
+                $this->pending = $next;
+            }
+            $sent = @socket_send($socket, $this->pending, strlen($this->pending), $flags);
+            if ($sent === false) {
+                $error = socket_last_error($socket);
+                socket_clear_error($socket);
+                if (in_array($error, self::RETRY_ERRORS, true)) {
+                    return true;
+                }
+                $this->pending = '';
+                $this->lost(socket_strerror($error));
+                return false;
+            }
+            $this->pending = (string) substr($this->pending, $sent);
+            if ($this->pending !== '') {
+                return true;
             }
         }
+    }
 
-        $this->readBuffer();
+    private function lost(string $reason): void
+    {
+        if ($this->state === self::STATE_DISCONNECTED || $this->state === self::STATE_SHUTDOWN) {
+            return;
+        }
+        $this->logger->info('§cConnection with StarGate server has disconnected unexpectedly: ' . $reason);
+        $this->close();
     }
 
     private function readBuffer(): void
@@ -168,7 +228,9 @@ class StarGateConnection extends Thread
 
             $magic = Binary::readShort(substr($this->buffer, $offset, 2));
             if ($magic !== ProtocolCodec::STARGATE_MAGIC) {
-                throw new StarGateException("'Magic does not match!");
+                // A corrupt stream cannot be resynchronised; drop the connection (the client reconnects) instead of killing the thread.
+                $this->buffer = '';
+                throw new StarGateException('Magic does not match!');
             }
             $offset += 2;
 

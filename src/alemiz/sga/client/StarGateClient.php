@@ -54,6 +54,19 @@ class StarGateClient extends Task
     /** @var SessionHandler|null */
     private ?SessionHandler $customHandler = null;
 
+    /** Reconnect backoff, seconds: the first retry is quick, then it doubles up to RETRY_MAX while the proxy stays down. */
+    private const RETRY_MIN = 2.0;
+    private const RETRY_MAX = 30.0;
+
+    /** connect() has been called at least once, so a lost or failed connection is retried. */
+    private bool $active = false;
+    /** shutdown() was called: never reconnect again. */
+    private bool $stopping = false;
+    private bool $wasConnected = false;
+    private bool $outageLogged = false;
+    private float $retryDelay = self::RETRY_MIN;
+    private float $nextAttempt = 0.0;
+
     /**
      * StarGateClient constructor.
      * @param string $address
@@ -74,24 +87,56 @@ class StarGateClient extends Task
         $this->loader->getScheduler()->scheduleDelayedRepeatingTask($this, 20, $this->loader->getTickInterval());
     }
 
+    /**
+     * Starts a connection attempt. Safe to call repeatedly: it does nothing while connected or while a previous
+     * attempt's thread is still trying, and it joins finished threads so retries never pile threads up.
+     */
     public function connect(): void
     {
-        if ($this->isConnected()) {
+        if ($this->stopping || $this->isConnected()) {
             return;
         }
+        $this->active = true;
+        if ($this->session !== null) {
+            $previous = $this->session->getConnection();
+            if ($previous->isRunning()) {
+                return;
+            }
+            $previous->quit();
+        }
+        $this->nextAttempt = microtime(true) + $this->retryDelay;
+        $this->retryDelay = min(self::RETRY_MAX, $this->retryDelay * 2);
         $this->session = new ClientSession($this, $this->address, $this->port);
     }
-
 
     public function onRun(): void
     {
         if ($this->session !== null && $this->isConnected()) {
             $this->session->onTick();
         }
+        if ($this->stopping || !$this->active || $this->isConnected()) {
+            return;
+        }
+        // Lost without a DisconnectPacket (the proxy died or the network dropped): tell listeners once.
+        if ($this->wasConnected) {
+            $this->onSessionDisconnected();
+        }
+        if (!$this->outageLogged) {
+            $this->outageLogged = true;
+            $this->logger->warning('§cStarGate proxy ' . $this->address . ':' . $this->port . ' is unreachable; retrying until it is back.');
+        }
+        if (microtime(true) >= $this->nextAttempt) {
+            $this->connect();
+        }
     }
 
     public function onSessionConnected(): void
     {
+        $this->retryDelay = self::RETRY_MIN;
+        if ($this->outageLogged) {
+            $this->outageLogged = false;
+            $this->logger->info('§bStarGate proxy is back; reconnected.');
+        }
         $this->logger->info('§bClient '.$this->getClientName().' has connected!');
         $event = new ClientConnectedEvent($this, $this->loader);
         $event->call();
@@ -104,6 +149,7 @@ class StarGateClient extends Task
 
     public function onSessionAuthenticated(): void
     {
+        $this->wasConnected = true;
         $event = new ClientAuthenticatedEvent($this, $this->loader);
         $event->call();
         if ($this->session !== null && $event->isCancelled()) {
@@ -111,8 +157,13 @@ class StarGateClient extends Task
         }
     }
 
+    /** Fired once per lost connection, whether the proxy said goodbye or simply vanished. */
     public function onSessionDisconnected(): void
     {
+        if (!$this->wasConnected) {
+            return;
+        }
+        $this->wasConnected = false;
         $event = new ClientDisconnectedEvent($this, $this->loader);
         $event->call();
     }
@@ -141,11 +192,8 @@ class StarGateClient extends Task
 
     public function shutdown(): void
     {
-        if (!$this->isConnected()) {
-            return;
-        }
-
-        if ($this->session !== null) {
+        $this->stopping = true;
+        if ($this->session !== null && $this->isConnected()) {
             $this->session->disconnect(DisconnectPacket::CLIENT_SHUTDOWN);
         }
     }

@@ -248,7 +248,7 @@ class ClientSession
         }
         $this->getLogger()->info('§bReconnecting to server! Reason: '.$reason);
         $this->close();
-        $this->client->connect();
+        // The client's tick loop starts the new attempt once this connection's thread has finished.
     }
 
     /**
